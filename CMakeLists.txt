@@ -21,33 +21,44 @@ target_include_directories(boxed-cpp INTERFACE
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-# Generate the version, config and target files
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config-version.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-configure_package_config_file(boxed-cpp-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
-)
+# https://cmake.org/cmake/help/latest/variable/PROJECT_IS_TOP_LEVEL.html
+string(COMPARE EQUAL ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR} PROJECT_IS_TOP_LEVEL)
 
-install(FILES ${boxed_cpp_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boxed-cpp
-)
-install(TARGETS boxed-cpp
-    EXPORT boxed-cpp-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+option(BOXED_CPP_INSTALL "Generate and install boxed-cpp target" ${PROJECT_IS_TOP_LEVEL})
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
-)
-install(EXPORT boxed-cpp-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
-    NAMESPACE boxed-cpp::
-)
+if(BOXED_CPP_INSTALL)
+    # Generate the version, config files
+    include(CMakePackageConfigHelpers)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config-version.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+    configure_package_config_file(boxed-cpp-config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
+    )
+
+    install(FILES ${boxed_cpp_HEADERS}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boxed-cpp
+    )
+    install(TARGETS boxed-cpp
+        EXPORT boxed-cpp-targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/boxed-cpp
+    )
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/boxed-cpp-config-version.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
+    )
+    install(EXPORT boxed-cpp-targets
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/boxed-cpp
+        NAMESPACE boxed-cpp::
+    )
+endif()
 
 # ---------------------------------------------------------------------------
 # unit tests
